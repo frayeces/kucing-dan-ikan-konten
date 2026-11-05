@@ -1,0 +1,28 @@
+{
+  "news": {
+    "id": "2026-11-selamat-datang",
+    "title": "Halo, pemain!",
+    "text": "Ada 2 level bonus baru di dunia ✨ Bonus Online, skin Pelangi di toko, dan event koin ganda minggu ini. Selamat bermain! 🐱🐟"
+  },
+  "event": {
+    "name": "Pekan Ikan Ganda",
+    "text": "semua hadiah koin dari level ×2",
+    "from": "2026-11-01",
+    "to": "2026-11-30",
+    "mult": 2
+  },
+  "skins": [
+    {"id": "pelangi", "n": "Pelangi", "e": "🐱", "f": "hue-rotate(90deg) saturate(2)", "p": 300, "c": "7be07b", "d": "3fb34f", "b": "f0fff0", "r": "ff5fa2"}
+  ],
+  "prices": {
+    "skins": {"emas": 500},
+    "pu": {"shield": 60, "bomb": 50, "skip": 120}
+  },
+  "levels": [
+    {"g":["...H...",".......","......R","...B..R","....<<<","...B..R","....<<<","..WL...","..>....","....R..","...BR..","....<..","...F..."],"p":[[0,3],[2,6],[3,6],[5,6],[7,2],[7,3],[9,4],[10,4]],"k":[[5,6,2,6],[7,2,5,6],[7,3,5,6],[9,4,7,2],[10,4,7,2],[0,3,10,4]],"par":7},
+    {"g":["...H...",".......",".....W.","...B.R.","....<<.","...L.W.","....<<.","R..B...",">>>....",".....R.","...B.R.","....<<.","...F..."],"p":[[0,3],[2,5],[3,5],[5,5],[5,3],[7,0],[9,5],[10,5]],"k":[[5,5,2,5],[5,3,3,5],[7,0,5,3],[9,5,7,0],[10,5,7,0],[0,3,10,5]],"par":6}
+  ],
+  "daily": {},
+  "leaderboard": {"url": ""},
+  "latest": {"version": 2, "text": "Versi baru tersedia di Play Store.", "url": ""}
+}
