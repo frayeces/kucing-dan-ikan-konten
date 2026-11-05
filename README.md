@@ -4,6 +4,12 @@ Game membaca `config.json` dari internet setiap kali dibuka, menyimpannya di HP,
 Kalau HP sedang offline, game memakai salinan terakhir. Ubah file ini → semua pemain mendapat
 konten baru saat membuka game berikutnya. Tidak perlu build APK atau unggah ulang ke Play Store.
 
+## Sudah aktif
+- Repositori: https://github.com/frayeces/kucing-dan-ikan-konten (folder ini = repositori git itu)
+- Konten: https://frayeces.github.io/kucing-dan-ikan-konten/config.json (sudah dipasang di game sejak 1.11.1)
+- Kebijakan privasi: https://frayeces.github.io/kucing-dan-ikan-konten/privasi.html
+- Update: edit file di folder ini lalu `git commit -am "..." && git push` (atau edit langsung di GitHub). Aktif 1–2 menit kemudian.
+
 ## Pasang sekali (GitHub Pages, gratis)
 1. Buat repositori **publik** baru di GitHub, misalnya `kucing-dan-ikan-konten`.
 2. Unggah `config.json` dari folder ini ke repositori itu.
