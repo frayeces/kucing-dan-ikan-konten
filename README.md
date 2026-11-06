@@ -5,16 +5,16 @@ Kalau HP sedang offline, game memakai salinan terakhir. Ubah file ini → semua 
 konten baru saat membuka game berikutnya. Tidak perlu build APK atau unggah ulang ke Play Store.
 
 ## Sudah aktif
-- Repositori: https://github.com/frayeces/kucing-dan-ikan-konten (folder ini = repositori git itu)
-- Konten: https://frayeces.github.io/kucing-dan-ikan-konten/config.json (sudah dipasang di game sejak 1.11.1)
-- Kebijakan privasi: https://frayeces.github.io/kucing-dan-ikan-konten/privasi.html
+- Repositori: https://github.com/frayeces/pinpaw (folder ini = repositori git itu)
+- Konten: https://frayeces.github.io/pinpaw/config.json (sudah dipasang di game sejak 1.11.1)
+- Kebijakan privasi: https://frayeces.github.io/pinpaw/privasi.html
 - Update: edit file di folder ini lalu `git commit -am "..." && git push` (atau edit langsung di GitHub). Aktif 1–2 menit kemudian.
 
 ## Pasang sekali (GitHub Pages, gratis)
-1. Buat repositori **publik** baru di GitHub, misalnya `kucing-dan-ikan-konten`.
+1. Buat repositori **publik** baru di GitHub, misalnya `pinpaw`.
 2. Unggah `config.json` dari folder ini ke repositori itu.
 3. Buka **Settings → Pages**, pilih *Deploy from a branch*, branch `main`, folder `/ (root)`, lalu simpan.
-4. Setelah 1–2 menit file bisa dibuka di `https://NAMA-ANDA.github.io/kucing-dan-ikan-konten/config.json`.
+4. Setelah 1–2 menit file bisa dibuka di `https://NAMA-ANDA.github.io/pinpaw/config.json`.
 5. Di `www/index.html` cari `var CONTENT_URL='';`, isi dengan alamat di atas, lalu build APK **sekali** lagi.
    Mulai saat itu, cukup edit `config.json` di GitHub.
 
