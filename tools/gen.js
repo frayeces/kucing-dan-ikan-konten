@@ -9,15 +9,27 @@ const { fork } = require('child_process');
 const { solve, stable } = require('./engine.js');
 const MOV = 'LWRXDE';
 
+// mekanik unggulan ada di papan?
+function hasFeat(g, f) {
+  const s = g.join('');
+  return f === 'es' ? s.includes('I') && s.includes('L') : f === 'portal' ? s.split('O').length === 3 : f === 'tombol' ? s.includes('Q') && s.includes('Z')
+    : f === 'petasan' ? s.includes('X') : f === 'tong' ? /[DE]/.test(s) : f === 'batu' ? s.includes('R') : true;
+}
+const FEATS = ['es', 'portal', 'tombol', 'petasan', 'tong', 'batu'];
+const ONLY = process.env.GEN_ONLY ? process.env.GEN_ONLY.split(',') : null;
 // ---------- pekerja: menghasilkan kandidat sampai waktu habis ----------
 function worker(seed, endAt) {
   let sd = seed | 0;
   const rnd = () => { sd = (sd + 0x6D2B79F5) | 0; let t = Math.imul(sd ^ (sd >>> 15), 1 | sd); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   const ri = n => Math.floor(rnd() * n), pick = a => a[ri(a.length)];
+  // mekanik unggulan: setiap level dibangun di sekitar satu mekanik yang WAJIB ada (dan setelah dirapikan pasti dibutuhkan).
+  // Bobot lebih besar untuk mekanik yang jarang muncul di dunia bawaan (es, portal, tombol).
   const FLAV = [
-    { n: 'dasar', t: 'LLWWRB#<>' }, { n: 'es', t: 'LLWWRBI#<>' }, { n: 'petasan', t: 'LWWRBX#<>' },
-    { n: 'portal', t: 'LLWWRB#<>', portal: 1 }, { n: 'gerbang', t: 'LLWWRB#<>', gate: 1 },
-    { n: 'tong', t: 'LLWWBDE#<>' }, { n: 'campur', t: 'LWRBIXDE#<>' }];
+    { n: 'es', w: 3, t: 'LLLWWRBII#<>', ice: 1 }, { n: 'portal', w: 3, t: 'LLWWRB#<>', portal: 1 },
+    { n: 'tombol', w: 3, t: 'LLWWRB#<>', gate: 1 }, { n: 'petasan', w: 2, t: 'LWWRBXX#<>' },
+    { n: 'tong', w: 2, t: 'LLWWBDE#<>' }, { n: 'batu', w: 1, t: 'LLWWRRB#<>' }]
+    .filter(f => !ONLY || ONLY.includes(f.n));
+  const FW = []; FLAV.forEach(f => { for (let i = 0; i < f.w; i++) FW.push(f); });
   const at = (L, r, c) => L.g[r][c];
   const setc = (L, r, c, ch) => { const s = L.g[r]; L.g[r] = s.slice(0, c) + ch + s.slice(c + 1); };
   const hasPin = (L, r, c) => L.p.some(q => q[0] === r && q[1] === c);
@@ -30,7 +42,7 @@ function worker(seed, endAt) {
     if (MOV.includes(ch) && rnd() < 0.85) L.p.push([r, c]);
   }
   function init(T) {
-    const W = pick([5, 5, 6, 7]), H = 9 + ri(4), fl = pick(FLAV), g = [];
+    const W = pick([5, 5, 6, 7]), H = 9 + ri(4), fl = pick(FW), g = [];
     for (let r = 0; r < H; r++) g.push('.'.repeat(W));
     const L = { g, p: [], k: [], fl, T };
     const nc = rnd() < .5 ? 1 : (rnd() < .8 ? 2 : 3), cs = [];
@@ -39,6 +51,7 @@ function worker(seed, endAt) {
     let nf = 0; while (nf < nc) { const r = rnd() < .6 ? H - 1 : Math.floor(H / 2) + ri(H - 1 - Math.floor(H / 2)), c = ri(W); if (at(L, r, c) === '.') { setc(L, r, c, 'F'); nf++; } }
     if (fl.portal) { setc(L, 2 + ri(3), ri(W), 'O'); const r2 = 5 + ri(H - 7), c2 = ri(W); if (at(L, r2, c2) === '.') setc(L, r2, c2, 'O'); }
     if (fl.gate) { const r = 3 + ri(H - 5), c = ri(W); if (at(L, r, c) === '.') setc(L, r, c, 'Z'); const r2 = 2 + ri(H - 3), c2 = ri(W); if (at(L, r2, c2) === '.') setc(L, r2, c2, 'Q'); }
+    if (fl.ice) { for (let i = 0; i < 1 + ri(2); i++) { const r = 2 + ri(H - 4), c = ri(W); if (at(L, r, c) === '.') setc(L, r, c, 'I'); } }
     const n = 6 + ri(6); for (let i = 0; i < n; i++) add(L);
     return L;
   }
@@ -55,7 +68,7 @@ function worker(seed, endAt) {
   }
   const lk = L => { const o = {}; L.k.forEach(a => o[a[0] + ',' + a[1]] = a[2] + ',' + a[3]); return o; };
   function evalL(L) {
-    if (L.p.length < 3 || L.p.length > 9 || !stable(L.g, L.p)) return null;
+    if (L.p.length < 3 || L.p.length > 9 || !hasFeat(L.g, L.fl.n) || !stable(L.g, L.p)) return null;
     const r = solve(L.g, L.p, lk(L), 60000);
     if (r.cap || r.w < 1) return null;
     const objs = L.g.join('').replace(/[.HF]/g, '').length;
@@ -70,7 +83,7 @@ function worker(seed, endAt) {
       const nx = mutate(cur), ne = evalL(nx);
       if (ne && (ne.sc >= ce.sc || rnd() < 0.03)) { cur = nx; ce = ne; }
     }
-    if (ce.r.par === T && ce.r.w <= Math.max(2, 9 - T)) process.send({ g: cur.g, p: cur.p, k: cur.k });
+    if (ce.r.par === T && ce.r.w <= Math.max(2, 9 - T)) process.send({ g: cur.g, p: cur.p, k: cur.k, f: cur.fl.n });
   }
 }
 
@@ -172,19 +185,26 @@ if (process.argv[2] === '--worker') {
       const a = hash(pr.L.g), b = hash(mir(pr.L.g));
       if (seen.has(a) || seen.has(b)) continue;
       const lvl = { g: pr.L.g, p: pr.L.p, k: pr.L.k, par: pr.r.par };
-      if (!valid(lvl)) continue;
-      seen.add(a); seen.add(b); good.push({ lvl, w: pr.r.w, l: pr.r.l });
+      if (!valid(lvl) || !hasFeat(lvl.g, c.f)) continue; // mekanik unggulan harus tetap ada setelah dirapikan (= dibutuhkan)
+      seen.add(a); seen.add(b); good.push({ lvl, w: pr.r.w, l: pr.r.l, f: c.f });
     }
-    // ambil yang paling beragam: urutkan par naik, lalu pilih merata dari rendah ke tinggi
+    const DUMP = process.argv.indexOf('--dump');
+    if (DUMP > 0) { fs.writeFileSync(process.argv[DUMP + 1], JSON.stringify(good)); console.log('kandidat lolos', good.length, 'ditulis ke', process.argv[DUMP + 1]); return; }
+    // mekanik unggulan hari ini bergiliran, jadi semua mekanik rutin muncul (mis. es, portal, tombol hari ini; petasan, tong, batu besok)
+    const today = []; for (let i = 0; i < COUNT; i++) today.push(FEATS[(day * COUNT + i) % FEATS.length]);
     good.sort((x, y) => x.lvl.par - y.lvl.par || x.w - y.w);
-    const idx = new Set();
-    for (let i = 0; i < COUNT && i < good.length; i++) idx.add(COUNT === 1 ? good.length - 1 : Math.round((good.length - 1) * i / (COUNT - 1)));
-    for (let i = 0; idx.size < Math.min(COUNT, good.length); i++) idx.add(i);
-    const take = [...idx].sort((a, b) => a - b).map(i => good[i]);
+    const take = [];
+    today.forEach((f, i) => {
+      const pool = good.filter(g => g.f === f && !take.includes(g));
+      if (pool.length) take.push(pool[Math.min(pool.length - 1, Math.round((pool.length - 1) * (i + 1) / (COUNT + 1)))]);
+    });
+    for (let i = 0; take.length < COUNT && i < good.length; i++) if (!take.includes(good[i]) && !take.some(t => t.f === good[i].f)) take.push(good[i]);
+    for (let i = 0; take.length < COUNT && i < good.length; i++) if (!take.includes(good[i])) take.push(good[i]);
+    take.sort((x, y) => x.lvl.par - y.lvl.par);
     if (!take.length) { console.log('tidak ada level baru yang lolos hari ini.'); return; }
     weeklyWorld(cfg);
     take.forEach(t => cfg.levels.push(t.lvl));
     fs.writeFileSync(CFG, JSON.stringify(cfg, null, 1) + '\n');
-    console.log('ditambahkan', take.length, 'level (par ' + take.map(t => t.lvl.par).join(', ') + '); total bonus:', cfg.levels.length);
+    console.log('ditambahkan', take.length, 'level:', take.map(t => t.f + ' par ' + t.lvl.par).join(', '), '· total bonus:', cfg.levels.length);
   }
 }
