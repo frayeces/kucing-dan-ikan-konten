@@ -1,0 +1,40 @@
+# Setiap hari membuat 3 level bonus baru (diperiksa solver) dan menambahkannya ke config.json.
+# GitHub Pages ikut terbit otomatis, jadi pemain mendapat level baru di dunia ✨ Bonus Online tanpa update aplikasi.
+name: Level harian
+on:
+  schedule:
+    - cron: '0 20 * * *'   # 20:00 UTC = 03:00 WIB
+  workflow_dispatch:
+    inputs:
+      count:
+        description: 'Jumlah level'
+        default: '3'
+      minutes:
+        description: 'Waktu generator (menit)'
+        default: '20'
+permissions:
+  contents: write
+concurrency:
+  group: level-harian
+  cancel-in-progress: false
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Buat level
+        run: node tools/gen.js "${{ github.event.inputs.count || '3' }}" "${{ github.event.inputs.minutes || '20' }}"
+      - name: Cek config.json masih valid
+        run: node -e "const c=require('./config.json');if(!Array.isArray(c.levels))throw new Error('levels hilang');console.log('level bonus:',c.levels.length)"
+      - name: Terbitkan
+        run: |
+          if git diff --quiet config.json; then echo "Tidak ada level baru."; exit 0; fi
+          git config user.name "pinpaw-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add config.json
+          git commit -m "Level bonus harian $(date -u +%F)"
+          git push

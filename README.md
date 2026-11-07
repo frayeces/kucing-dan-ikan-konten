@@ -57,3 +57,13 @@ Pastikan level bisa diselesaikan: cara termudah, minta Claude membuatkan level d
 
 Catatan: papan peringkat tanpa login seperti ini bisa dicurangi oleh orang yang paham teknis.
 Untuk game santai biasanya cukup. Kalau nanti butuh yang lebih aman, tambahkan Firebase Authentication.
+
+## Level bonus harian otomatis
+- Workflow `.github/workflows/level-harian.yml` berjalan setiap hari pukul 03:00 WIB (juga bisa manual: tab **Actions → Level harian → Run workflow**).
+- `tools/gen.js` membuat 3 level baru dengan mesin game yang sama (`tools/engine.js`), memastikan tiap level bisa diselesaikan,
+  stabil, target langkah = langkah minimum, dan tidak kembar dengan level bawaan (`tools/base-hashes.json`) maupun level bonus lain.
+- Setiap minggu dibuat satu dunia bonus baru bertema (daftar tema: `tools/themes.js`) di `worlds`; level minggu itu masuk ke dunia tersebut.
+  Game 1.18.0+ menampilkan tiap dunia dengan warna, ornamen, dan lagunya sendiri; versi lama menampilkan semuanya di ✨ Bonus Online.
+- Batas: 1000 level bonus (sama dengan batas di game).
+- `tools/engine.js` dan `tools/base-hashes.json` dibuat dari game dengan `node scripts/export_engine.js` (di folder proyek);
+  jalankan ulang lalu push setiap kali mesin atau daftar level game berubah.
